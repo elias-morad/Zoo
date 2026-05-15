@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Text.Json;
+using System.IO;
 
 namespace Zoo
 {
@@ -9,7 +10,40 @@ namespace Zoo
         {
             List<Animal> zoo = new List<Animal>();
 
-            bool displayAnimals()
+            void SaveToFile()
+            {
+                string json = JsonSerializer.Serialize(zoo, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+                File.WriteAllText("zoo.json", json);
+
+                Console.WriteLine("Zoo saved to file.");
+            }
+
+            void LoadFromFile()
+            {
+                if (!File.Exists("zoo.json"))
+                {
+                    Console.WriteLine("No save file found.");
+                    return;
+                }
+
+                string json = File.ReadAllText("zoo.json");
+
+                List<Animal>? loaded = JsonSerializer.Deserialize<List<Animal>>(json);
+
+                if (loaded != null)
+                {
+                    zoo = loaded;
+                    int maxId = zoo.Max(a => a.Id);
+                    Animal.UpdateNextId(maxId);
+                    Console.WriteLine("Zoo loaded successfully.");
+                }
+            }
+
+            bool DisplayAnimals()
             {
                 Console.WriteLine("\nAnimals in the Zoo:\n");
 
@@ -21,26 +55,39 @@ namespace Zoo
 
                 foreach (Animal animal in zoo)
                 {
-                    animal.ShowInfo();
+                    Console.WriteLine(animal);
                 }
                 return true;
             }
 
-            void addAnimal()
+            void AddAnimal()
             {
-                Console.Clear();
-
                 string name = string.Empty;
                 string species = string.Empty;
                 int age = 0;
                 string environment = string.Empty;
-                double cost = 0;
 
                 Console.WriteLine("Enter name:");
-                name = Console.ReadLine() ?? "";
+                while (string.IsNullOrWhiteSpace(name))
+                {
+                    name = Console.ReadLine() ?? "";
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        Console.WriteLine("Invalid name! Try again:");
+                    }
+                }
 
                 Console.WriteLine("Enter species:");
-                species = Console.ReadLine() ?? "";
+                while (string.IsNullOrWhiteSpace(species))
+                {
+                    species = Console.ReadLine() ?? "";
+
+                    if (string.IsNullOrWhiteSpace(species))
+                    {
+                        Console.WriteLine("Invalid species! Try again:");
+                    }
+                }
 
                 Console.WriteLine("Enter age:");
                 while (!int.TryParse(Console.ReadLine(), out age))
@@ -48,30 +95,30 @@ namespace Zoo
                     Console.WriteLine("Invalid age! Try again:");
                 }
 
-                Console.WriteLine("Enter cost:");
-                while (!double.TryParse(Console.ReadLine(), out cost))
+                Console.WriteLine("Enter environment:");
+                while (string.IsNullOrWhiteSpace(environment))
                 {
-                    Console.WriteLine("Invalid cost! Try again:");
+                    environment = Console.ReadLine() ?? "";
+
+                    if (string.IsNullOrWhiteSpace(environment))
+                    {
+                        Console.WriteLine("Invalid environment! Try again:");
+                    }
                 }
 
-                Console.WriteLine("Enter environment:");
-                environment = Console.ReadLine() ?? "";
-
-                zoo.Add(new Animal(name, species, age, cost, environment));
+                zoo.Add(new Animal(name, species, age, environment));
 
                 Console.WriteLine("\nAnimal added!\n");
             }
 
-            void removeAnimal()
+            void RemoveAnimal()
             {
-                if (!displayAnimals()) return;
+                if (!DisplayAnimals())
+                    return;
 
                 Console.WriteLine("Enter ID of animal to remove:");
-                int id;
 
-                int.TryParse(Console.ReadLine(), out id);
-
-                if (id <= 0)
+                if (!int.TryParse(Console.ReadLine(), out int id))
                 {
                     Console.WriteLine("Invalid ID!");
                     return;
@@ -79,15 +126,14 @@ namespace Zoo
 
                 Animal? found = zoo.Find(a => a.Id == id);
 
-                if (found != null)
-                {
-                    zoo.Remove(found);
-                    Console.WriteLine("Animal removed.");
-                }
-                else
+                if (found == null)
                 {
                     Console.WriteLine("Animal not found.");
+                    return;
                 }
+
+                zoo.Remove(found);
+                Console.WriteLine("Animal removed.");
             }
 
             bool shouldContinue = true;
@@ -98,23 +144,36 @@ namespace Zoo
                 Console.WriteLine("\n1. Add Animal");
                 Console.WriteLine("2. Remove Animal");
                 Console.WriteLine("3. Show Animals");
-                Console.WriteLine("4. Exit");
+                Console.WriteLine("4. Save Zoo");
+                Console.WriteLine("5. Load Zoo");
+                Console.WriteLine("6. Exit");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        addAnimal();
+                        Console.Clear();
+                        AddAnimal();
                         break;
 
                     case "2":
-                        removeAnimal();
+                        Console.Clear();
+                        RemoveAnimal();
                         break;
 
                     case "3":
-                        displayAnimals();
+                        Console.Clear();
+                        DisplayAnimals();
                         break;
 
                     case "4":
+                        SaveToFile();
+                        break;
+
+                    case "5":
+                        LoadFromFile();
+                        break;
+
+                    case "6":
                         shouldContinue = false;
                         break;
 

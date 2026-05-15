@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Zoo
 {
@@ -8,32 +6,37 @@ namespace Zoo
     {
         private static int _nextId = 1; // auto-increment ID
 
-        public int Id { get; }
-        public string Name { get; }
-        public string Species { get; }
-        public int Age { get; }
-        public double Cost { get; }
-        public string Environment { get; }
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string Species { get; set; } = null!;
+        public int Age { get; set; }
+        public string Environment { get; set; } = null!;
 
-        public Animal(string name, string species, int age, double cost, string environment)
+        // Parameterless constructor required for JSON
+        public Animal() { }
+
+        public Animal(string name, string species, int age, string environment)
         {
             Id = _nextId++;
             Name = name;
             Species = species;
             Age = age;
-            Cost = cost;
             Environment = environment;
         }
 
-        public void ShowInfo()
+        public override string ToString()
         {
-            Console.WriteLine($"ID: {Id}");
-            Console.WriteLine($"Name: {Name}");
-            Console.WriteLine($"Species: {Species}");
-            Console.WriteLine($"Age: {Age}");
-            Console.WriteLine($"Cost: {Cost}");
-            Console.WriteLine($"Environment: {Environment}");
-            Console.WriteLine();
+            return
+                $"ID: {Id}\n" +
+                $"Name: {Name}\n" +
+                $"Species: {Species}\n" +
+                $"Age: {Age}\n" +
+                $"Environment: {Environment}\n";
+        }
+
+        public static void UpdateNextId(int maxId)
+        {
+            _nextId = maxId + 1;
         }
     }
 }
