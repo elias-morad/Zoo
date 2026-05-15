@@ -11,17 +11,19 @@ namespace Zoo
         public string Species { get; set; } = null!;
         public int Age { get; set; }
         public string Environment { get; set; } = null!;
+        public DietType Diet { get; set; }
 
         // Parameterless constructor required for JSON
         public Animal() { }
 
-        public Animal(string name, string species, int age, string environment)
+        public Animal(string name, string species, int age, string environment, DietType diet)
         {
             Id = _nextId++;
             Name = name;
             Species = species;
             Age = age;
             Environment = environment;
+            Diet = diet;
         }
 
         public override string ToString()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 using System.IO;
+using System.Linq;
 
 namespace Zoo
 {
@@ -9,6 +10,26 @@ namespace Zoo
         static void Main(string[] args)
         {
             List<Animal> zoo = new List<Animal>();
+
+            List<AnimalTemplate> templates = new List<AnimalTemplate>
+            {
+                new AnimalTemplate("Leo", "Lion", DietType.Carnivore, "Savannah"),
+                new AnimalTemplate("Bella", "Elephant", DietType.Herbivore, "Savannah"),
+                new AnimalTemplate("Coco", "Parrot", DietType.Omnivore, "Rainforest"),
+                new AnimalTemplate("Nemo", "Clownfish", DietType.Omnivore, "Ocean")
+            };
+
+            // Used when adding animal
+            void ShowTemplates()
+            {
+                Console.WriteLine("\nSelect an animal to add:\n");
+
+                for (int i = 0; i < templates.Count; i++)
+                {
+                    var t = templates[i];
+                    Console.WriteLine($"{i + 1}. {t.Name} ({t.Species}) - {t.Diet}");
+                }
+            }
 
             void SaveToFile()
             {
@@ -37,8 +58,11 @@ namespace Zoo
                 if (loaded != null)
                 {
                     zoo = loaded;
-                    int maxId = zoo.Max(a => a.Id);
-                    Animal.UpdateNextId(maxId);
+                    if (zoo.Count > 0)
+                    {
+                        int maxId = zoo.Max(a => a.Id);
+                        Animal.UpdateNextId(maxId);
+                    }
                     Console.WriteLine("Zoo loaded successfully.");
                 }
             }
@@ -62,53 +86,39 @@ namespace Zoo
 
             void AddAnimal()
             {
-                string name = string.Empty;
-                string species = string.Empty;
-                int age = 0;
-                string environment = string.Empty;
+                ShowTemplates();
 
-                Console.WriteLine("Enter name:");
-                while (string.IsNullOrWhiteSpace(name))
+                Console.WriteLine("\nEnter choice:");
+
+                if (!int.TryParse(Console.ReadLine(), out int choice))
                 {
-                    name = Console.ReadLine() ?? "";
-
-                    if (string.IsNullOrWhiteSpace(name))
-                    {
-                        Console.WriteLine("Invalid name! Try again:");
-                    }
+                    Console.WriteLine("Invalid input.");
+                    return;
                 }
 
-                Console.WriteLine("Enter species:");
-                while (string.IsNullOrWhiteSpace(species))
+                if (choice < 1 || choice > templates.Count)
                 {
-                    species = Console.ReadLine() ?? "";
-
-                    if (string.IsNullOrWhiteSpace(species))
-                    {
-                        Console.WriteLine("Invalid species! Try again:");
-                    }
+                    Console.WriteLine("Invalid selection.");
+                    return;
                 }
 
-                Console.WriteLine("Enter age:");
-                while (!int.TryParse(Console.ReadLine(), out age))
-                {
-                    Console.WriteLine("Invalid age! Try again:");
-                }
+                var selected = templates[choice - 1];
 
-                Console.WriteLine("Enter environment:");
-                while (string.IsNullOrWhiteSpace(environment))
-                {
-                    environment = Console.ReadLine() ?? "";
+                Console.WriteLine("Enter custom name (or press Enter to keep default):");
+                string name = Console.ReadLine();
 
-                    if (string.IsNullOrWhiteSpace(environment))
-                    {
-                        Console.WriteLine("Invalid environment! Try again:");
-                    }
-                }
+                if (string.IsNullOrWhiteSpace(name))
+                    name = selected.Name;
 
-                zoo.Add(new Animal(name, species, age, environment));
+                zoo.Add(new Animal(
+                    name,
+                    selected.Species,
+                    1, // default age
+                    selected.Environment,
+                    selected.Diet
+                ));
 
-                Console.WriteLine("\nAnimal added!\n");
+                Console.WriteLine("Animal added from template!");
             }
 
             void RemoveAnimal()
